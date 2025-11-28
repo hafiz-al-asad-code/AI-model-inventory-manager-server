@@ -37,6 +37,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/latest-models', async (req, res) => {
+      const cursor = modelsCollection.find().sort({ createdAt: -1 }).limit(6);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     app.post('/models', async (req, res) => {
       const newModel = req.body;
       const result = await modelsCollection.insertOne(newModel);
