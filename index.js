@@ -29,6 +29,7 @@ async function run() {
 
     const db = client.db('AImodel_db');
     const modelsCollection = db.collection('models');
+    const purchasedCollection = db.collection('purchased');
 
     // models related APIs
     app.get('/models', async (req, res) => {
@@ -53,6 +54,26 @@ async function run() {
     app.post('/models', async (req, res) => {
       const newModel = req.body;
       const result = await modelsCollection.insertOne(newModel);
+      res.send(result);
+    })
+
+    app.patch('/models/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = new ObjectId(id);
+      const result = await modelsCollection.updateOne({ _id: query }, { $inc: { purchased: 1 } });
+      res.send(result);
+    })
+
+    // purchase related APIs
+    app.get('/purchased', async (req, res) => {
+      const cursor = purchasedCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    app.post('/purchased', async (req, res) => {
+      const newPurchased = req.body;
+      const result = await purchasedCollection.insertOne(newPurchased);
       res.send(result);
     })
 
