@@ -64,6 +64,25 @@ async function run() {
       res.send(result);
     })
 
+    app.patch('/update-model/:id', async (req, res) => {
+      const id = req.params.id;
+      const updatedModel = req.body;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: {
+          name: updatedModel.name,
+          framework: updatedModel.framework,
+          useCase: updatedModel.useCase,
+          dataset: updatedModel.dataset,
+          description: updatedModel.description,
+          image: updatedModel.image,
+        }
+      }
+      const result = await modelsCollection.updateOne(query, update);
+      res.send(result);
+    })
+
+
     // purchase related APIs
     app.get('/purchased', async (req, res) => {
       const cursor = purchasedCollection.find();
@@ -73,7 +92,28 @@ async function run() {
 
     app.post('/purchased', async (req, res) => {
       const newPurchased = req.body;
+      newPurchased.modelId = new ObjectId(newPurchased.modelId);
       const result = await purchasedCollection.insertOne(newPurchased);
+      res.send(result);
+    })
+
+
+    // models + purchased collection joined API
+    app.get('/models-purchased-joined', async (req, res) => {
+      const pipeline = [
+        {
+          $lookup: {
+            from: 'models',
+            localField: "modelId",
+            foreignField: "_id",
+            as: "modelDetails"
+          }
+        },
+        { $unwind: '$modelDetails' }
+      ]
+
+      const cursor = purchasedCollection.aggregate(pipeline);
+      const result = await cursor.toArray();
       res.send(result);
     })
 
