@@ -90,6 +90,14 @@ async function run() {
       res.send(result);
     })
 
+    app.get("/purchased/:id", async (req, res) => {
+      const id = req.params.id;
+      const email = req.query.email;
+      const query = { modelId: new ObjectId(id), purchasedBy: email };
+      const result = await purchasedCollection.findOne(query);
+      res.send(result);
+    })
+
     app.post('/purchased', async (req, res) => {
       const newPurchased = req.body;
       newPurchased.modelId = new ObjectId(newPurchased.modelId);
