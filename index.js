@@ -45,10 +45,24 @@ async function run() {
     });
 
     app.get('/models/:id', async (req, res) => {
-      const id = req.params.id;
-      const query = new ObjectId(id);
-      const result = await modelsCollection.findOne(query);
-      res.send(result);
+      try {
+        const id = req.params.id;
+
+        if (!ObjectId.isValid(id)) {
+          return res.status(404).send({ message: "Invalid Model Id" });
+        }
+
+        const result = await modelsCollection.findOne({ _id: new ObjectId(id) });
+
+        if (!result) {
+          return res.status(404).send({ message: 'Model not found' });
+        }
+
+        res.send(result);
+      }
+      catch (error) {
+        res.status(500).send({ error: error.message });
+      }
     })
 
     app.post('/models', async (req, res) => {
