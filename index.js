@@ -33,7 +33,11 @@ async function run() {
 
     // models related APIs
     app.get('/models', async (req, res) => {
-      const cursor = modelsCollection.find();
+      const search = req.query.search || "";
+
+      const query = { name: { $regex: search, $options: "i" } };
+
+      const cursor = modelsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
