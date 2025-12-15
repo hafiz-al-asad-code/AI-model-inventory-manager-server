@@ -25,7 +25,7 @@ app.get('/', (req, res) => {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const db = client.db('AImodel_db');
     const modelsCollection = db.collection('models');
@@ -144,36 +144,17 @@ async function run() {
     })
 
     app.delete("/models/:id", async (req, res) => {
-      const session = client.startSession();
       const id = req.params.id;
       const queryForModelsCollection = { _id: new ObjectId(id) };
       const queryForPurchasedCollection = { modelId: new ObjectId(id) };
-
-      try {
-        const result = await session.withTransaction(async () => {
-          const resultForModelsCollection = await modelsCollection.deleteOne(queryForModelsCollection, { session });
-          const resultForPurchasedCollection = await purchasedCollection.deleteOne(queryForPurchasedCollection, { session });
-
-          return {
-            modelsDeletedCount: resultForModelsCollection.deletedCount,
-            purchasedDeletedCount: resultForPurchasedCollection.deletedCount,
-          }
-        })
-
-        res.send({ success: true, message: "The model is deleted from both models and purchased collection", ...result });
-      }
-      catch (error) {
-        console.log(error);
-        res.send({ success: false, message: "Delete failed" });
-      }
-      finally {
-        await session.endSession();
-      }
+      const resultForModelsCollection = await modelsCollection.deleteOne(queryForModelsCollection);
+      const resultForPurchasedCollection = await purchasedCollection.deleteOne(queryForPurchasedCollection);
+      res.send({ for_models: resultForModelsCollection, for_purchased: resultForPurchasedCollection });
     })
 
 
 
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   }
   finally {
